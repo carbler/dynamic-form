@@ -1,0 +1,209 @@
+<!-- Campo basico del formulario -->
+<div [formGroup]="form" class="form-group"  [style.display]="this.field.type =='hidden'  ? 'none' : 'block'" *ngIf="!field.hidden && field.controlType != 'group'">
+    <label [attr.for]="field.key">{{field.label}}
+        <span class="text-danger" *ngIf="!isValid">
+            *
+        </span>
+    </label>
+
+
+    <div [ngSwitch]="field.controlType">
+        <div *ngSwitchCase="'textbox'">
+            <app-input 
+                [type]="field.type"
+                [id]="field.key"
+                [placeholder]="field.placeholder"
+                (ngModelChange)="change()"
+                [formControlName]="field.key">
+            </app-input>
+           
+        </div>
+        <div *ngSwitchCase="'select'">
+            <nz-form-control
+                    [nzErrorTip]="errors"
+                    [nzExtra]="field.help">
+                    <nz-select
+                        nzShowSearch
+                        nzAllowClear
+                        [nzPlaceHolder]="field.placeholder"
+                        [formControlName]="field.key"
+                        (ngModelChange)="change()"
+                        [nzMode]="field.multiple ? 'multiple' : 'default'"
+                        (nzOnSearch)="onSearch($event)">
+                        <nz-option *ngFor="let option of field.options"
+                            [nzLabel]="option.text"
+                            [nzValue]="option.key">
+                        </nz-option>
+                    </nz-select>
+            </nz-form-control>
+        </div>
+        <div *ngSwitchCase="'date'">
+            <nz-form-control
+                    [nzErrorTip]="errors"
+                    [nzExtra]="field.help">
+                    <ng-container *ngIf="field.range">
+                        <nz-range-picker
+                            [formControlName]="field.key"
+                            nzFormat="yyyy-MM-dd">
+                        </nz-range-picker>
+                    </ng-container>
+                    <ng-container *ngIf="!field.range">
+                        <nz-date-picker
+                            [formControlName]="field.key"
+                            [nzPlaceHolder]="field.placeholder"
+                            nzFormat="yyyy-MM-dd">
+                        </nz-date-picker>
+                    </ng-container>
+            </nz-form-control>
+        </div>
+
+        <div *ngSwitchCase="'switch'">
+            <nz-form-control
+                    [nzErrorTip]="errors"
+                    [nzExtra]="field.help">
+                    <nz-switch (ngModelChange)="change()" [formControlName]="field.key"></nz-switch>
+            </nz-form-control>
+        </div>
+
+        <div *ngSwitchCase="'textarea'">
+            <nz-form-control
+                    [nzErrorTip]="errors"
+                    [nzExtra]="field.help">
+                    <textarea nz-input [formControlName]="field.key"
+                        [placeholder]="field.placeholder">
+                    </textarea>
+            </nz-form-control>
+        </div>
+        <div *ngSwitchCase="'tags'">
+            <nz-form-control
+                [nzErrorTip]="errors"
+                [nzExtra]="field.help">
+                <nz-select
+                    nzAllowClear
+                    [nzPlaceHolder]="field.placeholder"
+                    [formControlName]="field.key"
+                    nzMode="tags">
+                </nz-select>
+            </nz-form-control>
+        </div>
+        <div *ngSwitchCase="'radio'">
+            <nz-form-control
+                [nzErrorTip]="errors"
+                [nzExtra]="field.help">
+                <nz-radio-group [formControlName]="field.key">
+                    <label nz-radio *ngFor="let option of field.options"
+                        [nzValue]="option.key">{{option.text}}</label>
+                </nz-radio-group>
+            </nz-form-control>
+        </div>
+        <!-- File-->
+		<div *ngSwitchCase="'file'">
+			<div class="contenedorImagen" *ngIf="this.imgPrevURL != null" >
+				<img [src]="imgPrevURL" height="200" />
+			</div>
+            <div class="btn-upload">
+                <nz-upload 
+                    class="btn-upload"
+                    [nzFileList]="fileList"
+                    [nzBeforeUpload]="beforeUpload"
+                    (nzChange)="deleteFile($event)">
+                    <button type="button" [disabled]="this.fileList.length > 0" nz-button>
+                        <span *ngIf="loading_save_file" class="spinner-border
+                        spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <i nz-icon nzType="upload"></i> {{field.textButton? field.textButton: (loading_save_file ? 'Cargando': 'Cargar')  }} 
+                    </button>
+                </nz-upload>
+            </div>
+			<input type="hidden" [id]="field.key" [name]="field.key" [formControlName]="field.key" >
+		</div>
+    </div>
+</div>
+
+<!-- Campo compuesto por un grupo de campos-->
+<div *ngIf="!field.hidden && field.controlType == 'group'" class="group">
+    <label>{{field.label}}</label>
+    <table class="table table-bordered" [formGroup]="form">
+        <thead>
+            <tr>
+                <th *ngFor="let item of field.config; let i= index;"> 
+                    {{item.title_column}}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container [formArrayName]="field.key" 
+            *ngFor="let item of getFormControls(field.key).controls; let i= index;">
+                <tr [formGroupName]="i">
+                    <td *ngFor="let item of field.config;">
+                        <div [ngSwitch]="item.type">
+                            <div *ngSwitchCase="'text'">
+                                <nz-form-control
+                                    [nzErrorTip]="errors">
+                                    <input nz-input
+                                        [type]="item.type"
+                                        [id]="item.key"
+                                        [placeholder]="item.placeholder"
+                                        [formControlName]="item.key" />
+                                </nz-form-control>
+                            </div>
+
+                            <div *ngSwitchCase="'number'">
+                                <nz-form-control
+                                    [nzErrorTip]="errors">
+                                    <input nz-input
+                                        [type]="item.type"
+                                        [id]="item.key"
+                                        [placeholder]="item.placeholder"
+                                        [formControlName]="item.key" />
+                                </nz-form-control>
+                            </div>
+                            <div *ngSwitchCase="'select'">
+                                <nz-select
+                                    nzAllowClear
+                                    [nzPlaceHolder]="item.placeholder"
+                                    [formControlName]="item.key">
+                                    <nz-option *ngFor="let option of item.options"
+                                        [nzLabel]="option.text"
+                                        [nzValue]="option.key">
+                                    </nz-option>
+                                </nz-select>
+                            </div>
+                            <div *ngSwitchCase="'switch'">
+                                <nz-switch [formControlName]="item.key"></nz-switch>
+                            </div>
+                            <div *ngSwitchCase="'date'">
+                                <nz-date-picker
+                                    [formControlName]="item.key"
+                                    [nzPlaceHolder]="item.placeholder"
+                                    nzFormat="yyyy-MM-dd">
+                                </nz-date-picker>
+                            </div>
+                            <div *ngSwitchCase="'btn_delete'" 
+                                nz-popconfirm 
+                                nzPopconfirmTitle="Esta seguro?" 
+                                nzOkText="ok" 
+                                nzCancelText="Cancelar" 
+                                (nzOnConfirm)="deleteRow(i)" 
+                                class="text-center icons-options">
+                                <i nz-icon nzType="delete"></i>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
+        </tbody>
+    </table>
+    <button nz-button nzType="text" type="button" (click)="addRow()"><i nz-icon nzType="plus"></i>Agregar fila</button>
+</div>
+
+
+<ng-template #errors let-control>
+    <ng-container *ngIf="control.hasError('maxlength')">La cantidad máxima de caracteres es
+        {{control.errors.maxlength.requiredLength}} </ng-container>
+    <ng-container *ngIf="control.hasError('minlength')">La cantidad mínima de caracteres es
+        {{control.errors.minlength.requiredLength}}</ng-container>
+    <ng-container *ngIf="control.hasError('required')">Este campo es requerido</ng-container>
+    <ng-container *ngIf="control.hasError('pattern')">Formato no coincide</ng-container>
+    <ng-container *ngIf="control.hasError('email')">Formato de email requerido</ng-container>
+    
+</ng-template>

@@ -1,0 +1,14 @@
+<nz-form-item>
+    <nz-form-control>
+        <input nz-input
+            [type]="type"
+            [placeholder]="placeholder"
+            (ngModelChange)="changueField($event)"
+            [id]="formControlName"
+            [maxlength]="maxlength"
+            [disabled]="disabled"
+            (focus)="focusFunction($event)"
+            (focusout)="focusOutFunction($event)"
+            [(ngModel)]="valueModel"/>
+    </nz-form-control>
+</nz-form-item>

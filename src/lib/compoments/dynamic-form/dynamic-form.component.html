@@ -1,0 +1,95 @@
+<div class="father-loading d-flex align-items-center justify-content-center"  *ngIf="loading">
+    <nz-spin class="mt-5 mb-5">
+
+    </nz-spin>    
+</div>
+<div *ngIf="config && !loading">
+    <form (ngSubmit)="onSubmit()" [formGroup]="form">
+        <div *ngIf="config.steps.length == 1">
+            <div class="text-center">
+                <h4>{{ config.steps[0].show_titulo ? config.steps[0].titulo : ''}}</h4>
+            </div>
+            <app-dynamic-field *ngFor="let field of config.steps[0].campos" #dynamicField
+                [field]="field" [form]="form"
+                (ChangeField)="changeField($event, dynamicField)"
+                (Search)="search($event,dynamicField )">
+            </app-dynamic-field>
+            <div class="text-right footer-form" *ngIf="config.btn_save">
+                <button type="submit" nz-button nzType="primary"
+                    [disabled]="!getValidForm() || loading_btn_save" >
+                    <span 
+                    *ngIf="loading_btn_save" 
+                    class="spinner-border spinner-border-sm" 
+                    role="status" aria-hidden="true">
+                </span>
+                {{ data ? 'Editar' : 'Guardar'}}</button>
+            </div>
+        </div>
+
+        <div *ngIf="config.steps.length> 1" class="" >
+            <nz-steps [nzCurrent]="current" nzDirection="horizontal" class="ps-5 pe-5 mb-3" nzProgressDot>
+                <nz-step *ngFor="let step of config.steps; let first= first; let last= last" [nzTitle]="step.show_titulo ? step.titulo: ''" nzDescription="">
+                </nz-step>
+            </nz-steps>
+            <div class="steps-content" >
+                <div class="steps-content" *ngFor="let step of config.steps; let first= first; let i= index">
+                    <ng-container *ngIf="current === i"> 
+                        <app-dynamic-field *ngFor="let field of step.campos" #dynamicFieldStep
+                                [field]="field" [form]="form"
+                                (ChangeField)="changeField($event, dynamicFieldStep)">
+                        </app-dynamic-field>   
+                    </ng-container>                    
+                </div>
+            </div>
+
+            <div class="steps-action">
+                <button nz-button nzType="default" class="me-2" (click)="pre()" *ngIf="current > 0">
+                    <span>Anterior</span>
+                </button>
+                <button nz-button nzType="default" class="me-2" (click)="next()" *ngIf="current < config.steps.length - 1">
+                    <span>Siguiente</span>
+                </button>
+                <button nz-button nzType="primary" class="me-2" (click)="done()" *ngIf="current === config.steps.length - 1"  [disabled]="!getValidForm()">
+                    <span>Guardar</span>
+                </button>
+              </div>
+        </div>
+        
+
+        <!-- 
+        <aw-wizard *ngIf="config.steps.length> 1" >
+            <aw-wizard-step  *ngFor="let step of config.steps; let first= first; let last= last"
+                [stepTitle]="step.show_titulo ? step.titulo: ''">
+                <app-dynamic-field *ngFor="let field of step.campos"
+                    [field]="field" [form]="form"
+                    (ChangeField)="changeField($event)">
+                </app-dynamic-field>
+
+                <div class="row">
+                    <div class="col-6 d-flex flex-row">
+                        <button nz-button nzType="primary" type="button" *ngIf="!first" awPreviousStep>Anterior</button>
+                    </div>
+                    <div class="col-6 d-flex flex-row-reverse">
+                        <button nz-button nzType="primary" 
+                            type="button"
+                            *ngIf="!last" 
+                            [disabled]="!getValidStep(step)"
+                            awNextStep>Siguiente</button>
+
+                        <button nz-button nzType="primary" 
+                            *ngIf="last" 
+                            type="submit"
+                            [disabled]="!getValidForm()">
+                            <span 
+                                *ngIf="loading_btn_save" 
+                                class="spinner-border spinner-border-sm" 
+                                role="status" aria-hidden="true">
+                            </span>
+                            {{ data ? 'Editar' : 'Guardar'}}</button>
+                    </div>
+                </div>
+       
+            </aw-wizard-step>
+        </aw-wizard>-->
+    </form>
+</div>
